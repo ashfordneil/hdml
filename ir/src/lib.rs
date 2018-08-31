@@ -8,6 +8,7 @@ use std::collections::{HashSet, HashMap};
 /// A gate
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Gate {
+    pub inputs: Vec<String>,
     pub nodes: HashMap<String, Node>,
     pub edges: HashMap<String, Vec<Edge>>,
 }

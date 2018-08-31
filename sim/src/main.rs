@@ -3,6 +3,7 @@ extern crate ir;
 
 use failure::Error;
 use ir::*;
+use std::collections::{HashSet, HashMap};
 
 // Start from inputs, go out
 
@@ -10,21 +11,28 @@ use ir::*;
 enum SimError {
     #[fail(display = "rest in peace")]
     Rip,
+    #[fail(display = "Bad main")]
+    BadMain,
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash)]
 enum SimState {
     Something,
 }
 
-fn simulate_gate(gate: &Gate, inputs: bool) -> Result<SimState, SimError> {
-    Ok(SimState::Something)
+fn sim_graph(graph: &Graph, main: String) -> Result<SimState, SimError> {
+    let start: &Gate = match graph.gates.get(main) {
+        Some(result) => result,
+        None => return Err(SimError::BadMain),
+    }; 
+
+    loop {
+    }
 }
 
 
 fn main() {
-    let graph = Graph {
-        nodes: vec![],
-        edges: vec![],
-    };
+    let mut graph: HashMap<String, Gate> = HashMap::new();
+
+    sim_graph(graph, "main");
 }

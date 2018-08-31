@@ -6,5 +6,6 @@ authors = ["Neil Ashford <ashfordneil0@gmail.com>"]
 [dependencies]
 ir = { path = "ir" }
 analyser = { path = "analyser" }
+sim = { path = "sim" }
 
 [workspace]
