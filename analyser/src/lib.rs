@@ -9,7 +9,6 @@ use failure::Error;
 use ir::{Edge, Gate, Node, Type};
 
 pub fn loop_free(graph: &HashMap<String, Gate>, gate: &Gate) -> Result<bool, Error> {
-    let mut inputs = gate.nodes.iter().map(|(_, x)| x).filter(|node| node.type_ == Type::Input);
     let mut seen = HashSet::new();
     let mut grey = HashSet::new();
 
@@ -38,7 +37,7 @@ pub fn loop_free(graph: &HashMap<String, Gate>, gate: &Gate) -> Result<bool, Err
         true
     }
 
-    if !inputs.all(|node| contains_loop(gate, &mut seen, &mut grey, node.clone())) {
+    if !gate.inputs.iter().filter_map(|name| gate.nodes.get(name).cloned()).all(|node| contains_loop(gate, &mut seen, &mut grey, node.clone())) {
         return Ok(false);
     }
 
@@ -48,4 +47,8 @@ pub fn loop_free(graph: &HashMap<String, Gate>, gate: &Gate) -> Result<bool, Err
 #[test]
 fn test_loop_free() {
     let gate: Gate = serde_json::from_str(include_str!("no_loops_test.json")).unwrap();
+    assert!(loop_free(&Default::default(), &gate).unwrap());
+
+    let gate: Gate = serde_json::from_str(include_str!("loops_test.json")).unwrap();
+    assert!(!loop_free(&Default::default(), &gate).unwrap());
 }
