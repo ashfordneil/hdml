@@ -3,7 +3,7 @@ extern crate ir;
 
 use failure::Error;
 use ir::*;
-use std::collections::{HashSet};
+use std::collections::{HashSet, HashMap};
 
 // Start from inputs, go out
 
@@ -32,4 +32,7 @@ fn sim_graph(graph: &Graph, main: String) -> Result<SimState, SimError> {
 
 
 fn main() {
+    let mut graph: HashMap<String, Gate> = HashMap::new();
+
+    sim_graph(graph, "main");
 }
