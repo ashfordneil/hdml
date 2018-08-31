@@ -1,10 +1,9 @@
 [package]
-name = "hdml"
+name = "analyser"
 version = "0.1.0"
 authors = ["Neil Ashford <ashfordneil0@gmail.com>"]
 
 [dependencies]
-ir = { path = "ir" }
-analyser = { path = "analyser" }
-
-[workspace]
+ir = { path = "../ir" }
+failure = "0.1.2"
+serde_json = "1.0.26"
