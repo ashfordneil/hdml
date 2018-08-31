@@ -5,4 +5,4 @@ authors = ["Tom Richardson <tgrkzus@gmail.com>"]
 
 [dependencies]
 failure = "0.1.2"
-ir = { path = "ir" }
+ir = { path = "../ir" }
