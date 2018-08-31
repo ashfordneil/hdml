@@ -3,32 +3,32 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
 /// A gate
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Gate {
-    nodes: Vec<Node>,
-    edges: Vec<Edge>,
+    pub nodes: HashMap<String, Node>,
+    pub edges: HashMap<Node, Vec<Edge>>,
 }
 
 /// A node within a gate
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Node {
-    type_: Type,
-    name: String,
+    pub type_: Type,
+    pub name: String,
 }
 
 /// An edge on the graph
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Edge {
     /// (name of node, name of output on that node)
-    source: (String, String),
+    pub source: (String, String),
     /// (name of node, name of input on that node)
-    sink: (String, String),
+    pub sink: (String, String),
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Type {
     /// An input node - part of the public API of that gate
     Input,
