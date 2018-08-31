@@ -1,0 +1,8 @@
+[package]
+name = "sim"
+version = "0.1.0"
+authors = ["Tom Richardson <tgrkzus@gmail.com>"]
+
+[dependencies]
+failure = "0.1.2"
+ir = { path = "ir" }
