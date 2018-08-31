@@ -19,7 +19,7 @@ pub fn loop_free(graph: &HashMap<String, Gate>, gate: &Gate) -> Result<bool, Err
         }
 
         grey.insert(node.clone());
-        if let Some(edges) = gate.edges.get(&node) {
+        if let Some(edges) = gate.edges.get(&node.name) {
             for edge in edges {
                 let (ref node_name, _) = edge.sink;
                 let node = gate.nodes.get(node_name).expect("edge leading to nonexistant node");

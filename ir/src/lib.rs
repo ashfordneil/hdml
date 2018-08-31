@@ -9,7 +9,7 @@ use std::collections::{HashSet, HashMap};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Gate {
     pub nodes: HashMap<String, Node>,
-    pub edges: HashMap<Node, Vec<Edge>>,
+    pub edges: HashMap<String, Vec<Edge>>,
 }
 
 /// A node within a gate
