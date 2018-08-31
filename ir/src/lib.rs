@@ -20,6 +20,13 @@ pub struct Node {
     pub name: String,
 }
 
+/// State of an edge.
+pub enum EdgeState {
+    True,
+    False,
+    Unknown,
+}
+
 /// An edge on the graph
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Edge {
@@ -27,6 +34,7 @@ pub struct Edge {
     pub source: (String, String),
     /// (name of node, name of input on that node)
     pub sink: (String, String),
+    pub state: 
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
