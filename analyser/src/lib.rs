@@ -2,7 +2,7 @@ extern crate failure;
 extern crate ir;
 extern crate serde_json;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use failure::Error;
 
@@ -79,4 +79,18 @@ fn test_loop_free() {
 
     let gate: Gate = serde_json::from_str(include_str!("loops_test.json")).unwrap();
     assert!(!loop_free(&Default::default(), &gate));
+}
+
+
+#[derive(Debug, Hash, PartialEq, Eq)]
+struct GateInput(BTreeMap<String, bool>);
+
+#[derive(Debug)]
+struct GateOutput(HashMap<String, bool>);
+
+#[derive(Debug)]
+struct TruthTable(HashMap<GateInput, GateOutput>);
+
+fn truth_table(graph: &HashMap<String, Gate>, precalculated: &mut HashMap<String, Option<TruthTable>>, gate: &Gate) -> Option<TruthTable> {
+    unimplemented!()
 }
