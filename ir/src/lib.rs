@@ -26,7 +26,7 @@ pub struct Edge {
     /// (name of node, name of output on that node)
     pub source: (String, String),
     /// (name of node, name of input on that node)
-    pub sink: (String, String),
+    pub dest: (String, String),
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
