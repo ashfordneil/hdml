@@ -5,10 +5,7 @@ authors = ["Neil Ashford <ashfordneil0@gmail.com>"]
 
 [dependencies]
 ir = { path = "ir" }
-<<<<<<< Updated upstream
 analyser = { path = "analyser" }
-=======
 sim = { path = "sim" }
->>>>>>> Stashed changes
 
 [workspace]
