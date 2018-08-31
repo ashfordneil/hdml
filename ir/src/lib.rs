@@ -4,12 +4,24 @@ extern crate serde;
 extern crate serde_derive;
 
 use std::collections::{HashSet, HashMap};
+<<<<<<< Updated upstream
+=======
+
+pub struct Graph {
+    gates: HashMap<String, Gate>,
+}
+>>>>>>> Stashed changes
 
 /// A gate
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Gate {
+<<<<<<< Updated upstream
     pub nodes: HashMap<String, Node>,
     pub edges: HashMap<Node, Vec<Edge>>,
+=======
+    pub nodes: Vec<Node>,
+    pub edges: Vec<Edge>,
+>>>>>>> Stashed changes
 }
 
 /// A node within a gate
@@ -26,6 +38,10 @@ pub struct Edge {
     pub source: (String, String),
     /// (name of node, name of input on that node)
     pub sink: (String, String),
+<<<<<<< Updated upstream
+=======
+    pub state: Option<bool>,
+>>>>>>> Stashed changes
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
