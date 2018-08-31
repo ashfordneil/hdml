@@ -13,3 +13,6 @@ Cargo.lock
 **/*.rs.bk
 
 *.un~
+
+/compiler/build/*
+/compiler/bin/*
