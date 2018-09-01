@@ -12,7 +12,7 @@ struct GateInput(BTreeMap<String, GateOutput>);
 struct GateOutput(bool);
 
 #[derive(Debug, Clone)]
-struct TruthTable(HashMap<GateInput, Option<GateOutput>>);
+struct TruthTable(HashMap<GateInput, GateOutput>);
 
 fn all_inputs(gate: &Gate) -> Vec<GateInput> {
     (0..)
@@ -41,9 +41,43 @@ fn nand_truth_table() -> TruthTable {
             .iter()
             .map(|(x, &y)| (x.to_string(), GateOutput(y)))
             .collect();
-        output.insert(GateInput(input), Some(GateOutput(*o)));
+        output.insert(GateInput(input), GateOutput(*o));
     }
     TruthTable(output)
+}
+
+fn calculate_value(
+    graph: &HashMap<String, Gate>,
+    precalculated: &mut HashMap<String, TruthTable>,
+    gate_type: &str,
+    inputs: &GateInput,
+) -> Option<GateOutput> {
+    let TruthTable(truth_table) = truth_table(graph, precalculated, gate_type);
+    let all_inputs = if gate_type == "nand" {
+        nand_truth_table().0.into_iter().map(|(key, _val)| key).collect()
+    } else {
+        let gate = graph.get(gate_type).unwrap();
+        all_inputs(gate)
+    };
+    let GateInput(current_inputs) = inputs;
+
+    let mut possible_outputs = all_inputs
+        .into_iter()
+        .filter(|GateInput(input)| {
+            current_inputs
+                .iter()
+                .all(|(key, val)| input.get(key) == Some(val))
+        }).map(|input| truth_table.get(&input).cloned().unwrap());
+
+    let init = Some(
+        possible_outputs
+            .next()
+            .expect("Invalid series of gate inputs"),
+    );
+    possible_outputs.fold(init, |init, next| match (init, next) {
+        (Some(GateOutput(x)), GateOutput(y)) if x == y => Some(GateOutput(x)),
+        _ => None,
+    })
 }
 
 fn truth_table<'a>(
@@ -100,24 +134,13 @@ fn truth_table<'a>(
                                 break 'output Some(GateOutput(value));
                             }
                             Type::Internal(gate_type) => {
-                                let values_needed = if gate_type == "nand" {
-                                    2
-                                } else {
-                                    graph.get(&gate_type).expect("undefined gate").inputs.len()
-                                };
-                                if currently_calculated.0.len() == values_needed {
-                                    // we've found all the inputs to this gate, lets move on
-                                    let TruthTable(truth_table_for_node) =
-                                        truth_table(graph, precalculated, &gate_type);
-
-                                    if let Some(Some(GateOutput(node_output))) =
-                                        truth_table_for_node.get(&currently_calculated.clone())
-                                    {
-                                        queue.push_back((
-                                            node_name.clone(),
-                                            GateOutput(*node_output),
-                                        ));
-                                    }
+                                if let Some(node_output) = calculate_value(
+                                    graph,
+                                    precalculated,
+                                    gate_type.as_str(),
+                                    currently_calculated,
+                                ) {
+                                    queue.push_back((node_name.clone(), node_output));
                                 }
                             }
                         }
@@ -127,7 +150,9 @@ fn truth_table<'a>(
                 break 'output None;
             };
 
-            output.insert(GateInput(input), gate_output);
+            if let Some(gate_output) = gate_output {
+                output.insert(GateInput(input), gate_output);
+            }
         }
 
         precalculated.insert(gate_name.into(), TruthTable(output));
@@ -140,7 +165,7 @@ fn truth_table<'a>(
 fn test_truth_table() {
     let graph = serde_json::from_str(include_str!("latch.json")).unwrap();
     let mut lookups = Default::default();
-    let table = truth_table(&graph, &mut lookups, "xor");
+    let table = truth_table(&graph, &mut lookups, "latch");
 
     panic!("{:#?}", table);
 }
