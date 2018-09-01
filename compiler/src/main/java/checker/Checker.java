@@ -16,7 +16,10 @@ public class Checker {
     
     public static CheckedProgram check(Program p) {
         HashMap<String, Symbol> symbols = new HashMap<>();
-        symbols.put("nand", new Symbol(SymbolType.DEFINITION, new Identifier("nand")));
+        List<String> nandParams = new ArrayList<>();
+        nandParams.add("x");
+        nandParams.add("y");
+        symbols.put("nand", new SymbolFunction(new Identifier("nand"), nandParams));
         List<CheckedDefinition> definitions = new ArrayList<>();
         for (Definition d : p.getDefinitions()) {
             // copy the symbol table down
@@ -44,8 +47,8 @@ public class Checker {
         for (Pattern p : d.getPatterns()) {
             checkPattern(p, s);
         }
-        checkExpression(d.getExpression(), s, outputName);
-        // symbols.get(d.getIdentifier().name).addReference(outputName);
+        checkExpression(d.getExpression(), s, outputName + "\", \"");
+
         return new CheckedDefinition(i, d.getPatterns(), d.getExpression(), s);
     }
 
@@ -62,10 +65,17 @@ public class Checker {
 
     public static void checkAssignment(Assignment assignment, HashMap<String, Symbol> symbols, String enclosing) {
         symbols.put(assignment.ident.name, new SymbolVariable(assignment.ident, assignment.expression));
-        checkExpression(assignment.expression, symbols, assignment.ident.name);
+        String name = checkExpression(assignment.expression, symbols, assignment.ident.name);
+        for (Symbol ss : symbols.values()) {
+            int index = ss.references.indexOf(name);
+            if (index != -1) {
+                ss.references.set(index, assignment.ident.name + "\", \"");
+            }
+        }
+        symbols.remove(name);
     }
 
-    public static void checkExpression(Expression expression, HashMap<String, Symbol> symbols, String enclosing) {
+    public static String checkExpression(Expression expression, HashMap<String, Symbol> symbols, String enclosing) {
         System.out.println("Expression " + expression);
         if (expression instanceof ExpressionLet) {
 
@@ -73,7 +83,7 @@ public class Checker {
             // Allow check definition to modify this symbol table
             checkAssignment(e.assignment, symbols, enclosing);
             // Use that symbol table to validate the expression
-            checkExpression(e.expression, symbols, enclosing);
+            return checkExpression(e.expression, symbols, enclosing);
 
         } else if (expression instanceof ExpressionIdentifier) {
 
@@ -83,13 +93,14 @@ public class Checker {
             } else {
                 throw new RuntimeException("Symbol " + e.ident.name + " not found");
             }
+            return e.ident.name;
 
         } else if (expression instanceof ExpressionFunction) {
 
             ExpressionFunction e = (ExpressionFunction) expression;
             String name = e.ident.name + f.format(r.nextInt(1000000));
-            if (symbols.containsKey(e.ident.name)) {
-                Symbol s = symbols.get(e.ident.name);
+            Symbol s = symbols.get(e.ident.name);
+            if (s != null) {
                 if (s.type != SymbolType.DEFINITION) {
                     throw new RuntimeException("Can't call something that's not a function");
                 }
@@ -99,12 +110,17 @@ public class Checker {
             } else {
                 throw new RuntimeException("Symbol " + e.ident.name + " not found");
             }
+            SymbolFunction f = (SymbolFunction) s;
+            int i = 0;
             for (Expression child : e.params) {
                 // Give these a new scope
-                checkExpression(child, symbols, name);
+                checkExpression(child, symbols, name + "\", \"" + f.params.get(i));
+                i++;
             }
+            return name;
             
         }
+        return null;
     }
 
     public static class Symbol {

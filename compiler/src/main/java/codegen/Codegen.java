@@ -3,6 +3,7 @@ package codegen;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.*;
 
 import checker.Checker.*;
 import parser.Program;
@@ -12,6 +13,8 @@ public class Codegen {
     public static void gen(CheckedProgram p, String out) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(out));
         writer.write("{\n");
+
+        int k = 0;
         for (CheckedDefinition d : p.definitions) {
             writeLineIndented("\"" + d.ident.name + "\": {", writer, 1);
             // inputs
@@ -30,13 +33,19 @@ public class Codegen {
 
             // nodes
             writeLineIndented("\"nodes\": {", writer, 2);
+            int i = 0, size = d.symbols.keySet().size();
             for (String key : d.symbols.keySet()) {
                 Symbol s = d.symbols.get(key);
+                // Don't include ourselves in the output
+                if (s.type == SymbolType.DEFINITION) {
+                    i++;
+                    continue;
+                }
                 writeLineIndented("\"" + s.ident.name + "\"" + ": {", writer, 3);
                 if (s.type == SymbolType.INPUT) {
-                    writeLineIndented("\"type_\": \"input\",", writer, 4);
+                    writeLineIndented("\"type_\": \"Input\",", writer, 4);
                 } else if (s.type == SymbolType.OUTPUT) {
-                    writeLineIndented("\"type_\": \"output\",", writer, 4);
+                    writeLineIndented("\"type_\": \"Output\",", writer, 4);
                 } else if (s.type == SymbolType.CALL) {
                     SymbolCall call = (SymbolCall) s;
                     writeLineIndented("\"type_\": {", writer, 4);
@@ -49,26 +58,53 @@ public class Codegen {
                     writeLineIndented("},", writer, 4);
                 }
                 writeLineIndented("\"name\": \"" + s.ident.name + "\"", writer, 4);
-                writeLineIndented("},", writer, 3);
+                if (i < size - 1) {
+                    writeLineIndented("},", writer, 3);
+                } else {
+                    writeLineIndented("}", writer, 3);
+                }
+                i++;
             }
             writeLineIndented("},\n", writer, 2);
 
             // edges
             writeLineIndented("\"edges\": {", writer, 2);
+            i = 0;
             for (String key : d.symbols.keySet()) {
                 Symbol s = d.symbols.get(key);
+                // Don't include ourselves in the output
+                if (s.type == SymbolType.DEFINITION) {
+                    i++;
+                    continue;
+                }
                 writeLineIndented("\"" + s.ident.name + "\"" + ": [", writer, 3);
+                int j = 0;
                 for (String r : s.references) {
                     writeLineIndented("{", writer, 4);
                     writeLineIndented("\"source\": \"" + s.ident.name + "\",", writer, 5);
-                    writeLineIndented("\"sink\": [\"" + r + "\"],", writer, 5);
-                    writeLineIndented("},", writer, 4);
+                    writeLineIndented("\"sink\": [\"" + r + "\"]", writer, 5);
+                    if (j < s.references.size() - 1) {
+                        writeLineIndented("},", writer, 4);
+                    } else {
+                        writeLineIndented("}", writer, 4);
+                    }
+                    j++;
                 }
-                writeLineIndented("],", writer, 3);
+                if (i < size - 1) {
+                    writeLineIndented("],", writer, 3);
+                } else {
+                    writeLineIndented("]", writer, 3);
+                }
+                i++;
             }
             writeLineIndented("}\n", writer, 2);
 
-            writeLineIndented("}\n", writer, 1);
+            if (k < p.definitions.size() - 1) {
+                writeLineIndented("},\n", writer, 1);
+            } else {
+                writeLineIndented("}\n", writer, 1);
+            }
+            k++;
         }
         writer.write("}");
         writer.newLine();
