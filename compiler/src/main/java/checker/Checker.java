@@ -47,7 +47,7 @@ public class Checker {
         for (Pattern p : d.getPatterns()) {
             checkPattern(p, s);
         }
-        checkExpression(d.getExpression(), s, outputName + "\", \"");
+        checkExpression(d.getExpression(), s, outputName, "");
 
         return new CheckedDefinition(i, d.getPatterns(), d.getExpression(), s);
     }
@@ -63,33 +63,34 @@ public class Checker {
         }
     }
 
-    public static void checkAssignment(Assignment assignment, HashMap<String, Symbol> symbols, String enclosing) {
+    public static void checkAssignment(Assignment assignment, HashMap<String, Symbol> symbols, String sink, String sinkInput) {
         symbols.put(assignment.ident.name, new SymbolVariable(assignment.ident, assignment.expression));
-        String name = checkExpression(assignment.expression, symbols, assignment.ident.name);
+        String name = checkExpression(assignment.expression, symbols, assignment.ident.name, sinkInput);
         for (Symbol ss : symbols.values()) {
             int index = ss.references.indexOf(name);
+            System.out.println(ss + ": " + index);
             if (index != -1) {
-                ss.references.set(index, assignment.ident.name + "\", \"");
+                ss.references.set(index, assignment.ident.name);
             }
         }
         symbols.remove(name);
     }
 
-    public static String checkExpression(Expression expression, HashMap<String, Symbol> symbols, String enclosing) {
+    public static String checkExpression(Expression expression, HashMap<String, Symbol> symbols, String sink, String sinkInput) {
         System.out.println("Expression " + expression);
         if (expression instanceof ExpressionLet) {
 
             ExpressionLet e = (ExpressionLet) expression;
             // Allow check definition to modify this symbol table
-            checkAssignment(e.assignment, symbols, enclosing);
+            checkAssignment(e.assignment, symbols, sink, sinkInput);
             // Use that symbol table to validate the expression
-            return checkExpression(e.expression, symbols, enclosing);
+            return checkExpression(e.expression, symbols, sink, sinkInput);
 
         } else if (expression instanceof ExpressionIdentifier) {
 
             ExpressionIdentifier e = (ExpressionIdentifier) expression;
             if (symbols.containsKey(e.ident.name)) {
-                symbols.get(e.ident.name).addReference(enclosing);
+                symbols.get(e.ident.name).addReference(sink, sinkInput);
             } else {
                 throw new RuntimeException("Symbol " + e.ident.name + " not found");
             }
@@ -106,7 +107,7 @@ public class Checker {
                 }
                 // Add symbol for function 
                 symbols.put(name, new SymbolCall(new Identifier(name), e.ident.name));
-                symbols.get(name).addReference(enclosing);
+                symbols.get(name).addReference(sink, sinkInput);
             } else {
                 throw new RuntimeException("Symbol " + e.ident.name + " not found");
             }
@@ -114,7 +115,7 @@ public class Checker {
             int i = 0;
             for (Expression child : e.params) {
                 // Give these a new scope
-                checkExpression(child, symbols, name + "\", \"" + f.params.get(i));
+                checkExpression(child, symbols, name, f.params.get(i));
                 i++;
             }
             return name;
@@ -127,12 +128,18 @@ public class Checker {
         public SymbolType type;
         public Identifier ident;
         public List<String> references;
+        public List<String> referencesInputs;
         
 
         public Symbol(SymbolType type, Identifier ident) {
             this.type = type;
             this.ident = ident;
             this.references = new ArrayList<>();
+            this.referencesInputs = new ArrayList<>();
+        }
+
+        public String toString() {
+            return type.name() +  " - " + ident.toString();
         }
 
         public boolean equals(Object o) {
@@ -143,8 +150,9 @@ public class Checker {
             return other.ident == this.ident && other.type == this.type;
         }
 
-        public void addReference(String s) {
-            this.references.add(s);
+        public void addReference(String sink, String sinkInput) {
+            this.references.add(sink);
+            this.referencesInputs.add(sinkInput);
         }
     }
 

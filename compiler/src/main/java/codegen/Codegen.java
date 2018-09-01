@@ -79,10 +79,10 @@ public class Codegen {
                 }
                 writeLineIndented("\"" + s.ident.name + "\"" + ": [", writer, 3);
                 int j = 0;
-                for (String r : s.references) {
+                while (j < s.references.size()) {
                     writeLineIndented("{", writer, 4);
                     writeLineIndented("\"source\": \"" + s.ident.name + "\",", writer, 5);
-                    writeLineIndented("\"sink\": [\"" + r + "\"]", writer, 5);
+                    writeLineIndented("\"sink\": [\"" + s.references.get(j) + "\", \"" + s.referencesInputs.get(j) + "\"]", writer, 5);
                     if (j < s.references.size() - 1) {
                         writeLineIndented("},", writer, 4);
                     } else {
