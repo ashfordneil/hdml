@@ -5,78 +5,6 @@ use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 
 use ir::{Edge, Gate, Node, Type};
 
-pub fn loop_free(graph: &HashMap<String, Gate>, gate: &Gate) -> bool {
-    let mut seen = HashSet::new();
-    let mut grey = HashSet::new();
-
-    fn contains_loop(
-        gate: &Gate,
-        seen: &mut HashSet<Node>,
-        grey: &mut HashSet<Node>,
-        node: Node,
-    ) -> bool {
-        if grey.contains(&node) {
-            return false;
-        }
-
-        grey.insert(node.clone());
-        if let Some(edges) = gate.edges.get(&node.name) {
-            for edge in edges {
-                let (ref node_name, _) = edge.sink;
-                let node = gate
-                    .nodes
-                    .get(node_name)
-                    .expect("edge leading to nonexistant node");
-                if seen.contains(&node) {
-                    continue;
-                }
-                if !contains_loop(gate, seen, grey, node.clone()) {
-                    return false;
-                }
-            }
-        }
-
-        grey.remove(&node);
-        seen.insert(node);
-
-        true
-    }
-
-    if !gate
-        .inputs
-        .iter()
-        .filter_map(|name| gate.nodes.get(name).cloned())
-        .all(|node| contains_loop(gate, &mut seen, &mut grey, node.clone()))
-    {
-        return false;
-    }
-
-    if !gate
-        .nodes
-        .iter()
-        .map(|(_, node)| node)
-        .filter_map(|node| match node.type_ {
-            Type::Internal(ref x) => Some(x),
-            _ => None,
-        }).filter(|gate_name| gate_name.as_str() != "nand")
-        .map(|gate_name| graph.get(gate_name).expect("could not find gate"))
-        .all(|gate| loop_free(graph, gate))
-    {
-        return false;
-    }
-
-    true
-}
-
-// #[test]
-// fn test_loop_free() {
-//     let gate: Gate = serde_json::from_str(include_str!("no_loops_test.json")).unwrap();
-//     assert!(loop_free(&Default::default(), &gate));
-
-//     let gate: Gate = serde_json::from_str(include_str!("loops_test.json")).unwrap();
-//     assert!(!loop_free(&Default::default(), &gate));
-// }
-
 #[derive(Debug, Default, Hash, PartialEq, Eq, Clone)]
 struct GateInput(BTreeMap<String, GateOutput>);
 
@@ -86,49 +14,55 @@ struct GateOutput(bool);
 #[derive(Debug, Clone)]
 struct TruthTable(HashMap<GateInput, Option<GateOutput>>);
 
-fn truth_table(
-    graph: &HashMap<String, Gate>,
-    precalculated: &mut HashMap<String, TruthTable>,
-    gate_name: &str,
-) -> TruthTable {
+fn all_inputs(gate: &Gate) -> Vec<GateInput> {
+    (0..)
+        .map(|num| {
+            gate.inputs
+                .iter()
+                .enumerate()
+                .map(|(bit, name)| {
+                    let value = num & (1 << bit) != 0;
+                    (name.clone(), GateOutput(value))
+                }).collect::<BTreeMap<_, _>>()
+        }).take(1 << gate.inputs.len())
+        .map(GateInput)
+        .collect::<Vec<_>>()
+}
+
+fn nand_truth_table() -> TruthTable {
+    let mut output = HashMap::new();
+    for (x, y, o) in &[
+        (false, false, true),
+        (false, true, true),
+        (true, false, true),
+        (true, true, false),
+    ] {
+        let input = (&[("x", x), ("y", y)])
+            .iter()
+            .map(|(x, &y)| (x.to_string(), GateOutput(y)))
+            .collect();
+        output.insert(GateInput(input), Some(GateOutput(*o)));
+    }
+    TruthTable(output)
+}
+
+fn truth_table<'a>(
+    graph: &'a HashMap<String, Gate>,
+    precalculated: &'a mut HashMap<String, TruthTable>,
+    gate_name: &'a str,
+) -> &'a TruthTable {
     if !precalculated.contains_key(gate_name) {
         if gate_name == "nand" {
-            let mut output = HashMap::new();
-            for (x, y, o) in &[
-                (false, false, true),
-                (false, true, true),
-                (true, false, true),
-                (true, true, false),
-            ] {
-                let input = (&[("x", x), ("y", y)])
-                    .iter()
-                    .map(|(x, &y)| (x.to_string(), GateOutput(y)))
-                    .collect();
-                output.insert(GateInput(input), Some(GateOutput(*o)));
-            }
-            let output = TruthTable(output);
-
-            precalculated.insert("nand".into(), output.clone());
-
-            return output;
+            precalculated.insert("nand".into(), nand_truth_table());
+            return precalculated.get("nand").unwrap();
         }
 
         let gate = graph.get(gate_name).expect("Gate does not exist");
-        let input_possibilities = (0..)
-            .map(|num| {
-                gate.inputs
-                    .iter()
-                    .enumerate()
-                    .map(|(bit, name)| {
-                        let value = num & (1 << bit) != 0;
-                        (name.clone(), GateOutput(value))
-                    }).collect::<BTreeMap<_, _>>()
-            }).take(1 << gate.inputs.len())
-            .collect::<Vec<_>>();
+        let input_possibilities = all_inputs(&gate);
 
         let mut output = HashMap::new();
 
-        for input in input_possibilities {
+        for GateInput(input) in input_possibilities {
             // map from node name to state of inputs to node
             // state of inputs to node is map from incomming edge name to value on that edge (if
             // calculated)
@@ -176,10 +110,13 @@ fn truth_table(
                                     let TruthTable(truth_table_for_node) =
                                         truth_table(graph, precalculated, &gate_type);
 
-                                    if let Some(Some(GateOutput(node_output))) = truth_table_for_node
-                                        .get(&currently_calculated.clone())
+                                    if let Some(Some(GateOutput(node_output))) =
+                                        truth_table_for_node.get(&currently_calculated.clone())
                                     {
-                                        queue.push_back((node_name.clone(), GateOutput(*node_output)));
+                                        queue.push_back((
+                                            node_name.clone(),
+                                            GateOutput(*node_output),
+                                        ));
                                     }
                                 }
                             }
@@ -196,14 +133,14 @@ fn truth_table(
         precalculated.insert(gate_name.into(), TruthTable(output));
     }
 
-    precalculated.get(gate_name).cloned().unwrap()
+    precalculated.get(gate_name).unwrap()
 }
 
 #[test]
 fn test_truth_table() {
     let graph = serde_json::from_str(include_str!("latch.json")).unwrap();
     let mut lookups = Default::default();
-    let table = truth_table(&graph, &mut lookups, "latch");
+    let table = truth_table(&graph, &mut lookups, "xor");
 
     panic!("{:#?}", table);
 }
