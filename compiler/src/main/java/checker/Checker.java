@@ -10,7 +10,7 @@ import parser.Parser.*;
 
 public class Checker {
 
-    private static Random r = new Random();
+    private static int identifier = 0;
     
     private static NumberFormat f = new DecimalFormat("000000");
     
@@ -99,7 +99,7 @@ public class Checker {
         } else if (expression instanceof ExpressionFunction) {
 
             ExpressionFunction e = (ExpressionFunction) expression;
-            String name = e.ident.name + f.format(r.nextInt(1000000));
+            String name = e.ident.name + f.format(identifier++);
             Symbol s = symbols.get(e.ident.name);
             if (s != null) {
                 if (s.type != SymbolType.DEFINITION) {
