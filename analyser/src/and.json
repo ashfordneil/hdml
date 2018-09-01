@@ -1,0 +1,57 @@
+{
+    "and": {
+        "inputs": ["x", "y"],
+        "nodes": {
+            "x": {
+                "type_": "Input",
+                "name": "x"
+            },
+            "y": {
+                "type_": "Input",
+                "name": "y"
+            },
+            "nand0": {
+                "type_": {
+                    "Internal": "nand"
+                },
+                "name": "nand0"
+            },
+            "nand1": {
+                "type_": {
+                    "Internal": "nand"
+                },
+                "name": "nand1"
+            },
+            "output": {
+                "type_": "Output",
+                "name": "output"
+            }
+        },
+        "edges": {
+            "1": [],
+            "0": [],
+            "x": [{
+                "source": "x",
+                "sink": ["nand0", "x"]
+            }],
+            "y": [{
+                "source": "y",
+                "sink": ["nand0", "y"]
+            }],
+            "nand0": [
+                {
+                    "source": "nand0",
+                    "sink": ["nand1", "x"]
+                },
+                {
+                    "source": "nand0",
+                    "sink": ["nand1", "y"]
+                }
+            ],
+            "nand1": [{
+                "source": "nand1",
+                "sink": ["output", ""]
+            }]
+        }
+    }
+}
