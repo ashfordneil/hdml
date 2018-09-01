@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.*;
 
 import checker.Checker;
+import checker.Checker.CheckedProgram;
+import codegen.Codegen;
 import parser.Parser;
 import parser.Program;
 import parser.Parser.Token;
@@ -22,7 +24,12 @@ public class Compiler {
             System.out.println(d.toString());
         }
         System.out.println("Checking");
-        Checker.check(program);
+        CheckedProgram checked = Checker.check(program);
+        try {
+            Codegen.gen(checked, "out");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return;
     }
 }
