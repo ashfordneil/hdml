@@ -23,8 +23,8 @@ pub struct Node {
 /// An edge on the graph
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Edge {
-    /// (name of node, name of output on that node)
-    pub source: (String, String),
+    /// name of node
+    pub source: String,
     /// (name of node, name of input on that node)
     pub sink: (String, String),
 }
