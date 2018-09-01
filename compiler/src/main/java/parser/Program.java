@@ -93,14 +93,26 @@ public class Program {
             return "PATTERN LITERAL " + literal;
         }
     }
+
+    public static class Assignment {
+        public Identifier ident;
+        public Expression expression;
+
+        public Assignment(Identifier ident, Expression e) {
+            this.ident = ident;
+            this.expression = e;
+        }
+    }
     
     public static class Expression {
+        public String type;
     }
     
     public static class ExpressionLiteral extends Expression {
         public int literal;
         public ExpressionLiteral(int literal) {
             this.literal = literal;
+            this.type = "literal";
         }
 
         public String toString() {
@@ -109,17 +121,18 @@ public class Program {
     }
     
     public static class ExpressionLet extends Expression {
-        public Definition definition;
+        public Assignment assignment;
         public Expression expression;
     
-        public ExpressionLet(Definition definition, Expression expression) {
-            this.definition = definition;
+        public ExpressionLet(Assignment assignment, Expression expression) {
+            this.assignment = assignment;
             this.expression = expression;
+            this.type = expression.type;
         }
 
         public String toString() {
             return Parser.KW_LET + " " +
-                definition.toString() + 
+                assignment.toString() + 
                 Parser.KW_IN + " " +
                 expression.toString();
         }
@@ -131,6 +144,7 @@ public class Program {
         public ExpressionFunction(Identifier ident, List<Expression> params) {
             this.ident = ident;
             this.params = params;
+            this.type = ident.name;
         }
 
         public String toString() {
@@ -150,6 +164,7 @@ public class Program {
         public Identifier ident;
         public ExpressionIdentifier(Identifier ident) {
             this.ident = ident;
+            this.type = ident.name;
         }
 
         public String toString() {

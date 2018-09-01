@@ -87,14 +87,28 @@ public class Parser {
         throw new RuntimeException("You dun fucked up");
     }
 
+    private static Assignment parseAssignment(ListIterator<Token> iter) {
+        Token token = iter.next();
+        if (token.kind != TokenKind.IDENT) {
+            throw new RuntimeException("Expected IDENTIFER, got " + token.kind.name());
+        }
+        Identifier i = new Identifier(((TokenIdentifier )token).name);
+        token = iter.next();
+        if (token.kind != TokenKind.EQUALS) {
+            throw new RuntimeException("Expected EQUALS, got " + token.kind.name());
+        }
+        Expression e = parseExpression(iter);
+        return new Assignment(i, e);
+    }
+
     private static ExpressionLet parseExpressionLet(ListIterator<Token> iter) {
-        Definition d = parseDefinition(iter);
+        Assignment assignment = parseAssignment(iter);
         Token token = iter.next();
         if (token.getKind() != TokenKind.IN) {
             throw new RuntimeException("Expected IN, got " + token);
         }
         Expression e = parseExpression(iter);
-        return new ExpressionLet(d, e);
+        return new ExpressionLet(assignment, e);
     }
 
     public static List<Token> tokenize(String file) throws IOException {
