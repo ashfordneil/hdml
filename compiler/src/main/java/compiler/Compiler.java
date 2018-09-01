@@ -3,6 +3,7 @@ package compiler;
 import java.io.IOException;
 import java.util.*;
 
+import checker.Checker;
 import parser.Parser;
 import parser.Program;
 import parser.Parser.Token;
@@ -12,7 +13,7 @@ public class Compiler {
     public static void main(String[] args) {
         List<Token> tokens = new ArrayList<>();
 		try {
-			tokens = Parser.tokenize("test.txt");
+			tokens = Parser.tokenize("tests/xor");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -20,6 +21,8 @@ public class Compiler {
         for (Definition d : program.getDefinitions()) {
             System.out.println(d.toString());
         }
+        System.out.println("Checking");
+        Checker.check(program);
         return;
     }
 }

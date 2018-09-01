@@ -34,6 +34,18 @@ public class Program {
             this.result = result;
         }
 
+        public Identifier getIdentifier() {
+            return ident;
+        }
+
+        public List<Pattern> getPatterns() {
+            return patterns;
+        }
+
+        public Expression getExpression() {
+            return result;
+        }
+
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append(ident);
@@ -49,7 +61,7 @@ public class Program {
     }
 
     public static class Pattern {
-        protected TokenKind token;
+        public TokenKind token;
 
         public String toString() {
             return token.name();
@@ -63,7 +75,7 @@ public class Program {
     }
     
     public static class PatternIdentifier extends Pattern {
-        private Identifier ident;
+        public Identifier ident;
         public PatternIdentifier(Identifier ident) {
             this.token = TokenKind.IDENT;
             this.ident = ident;
@@ -71,7 +83,7 @@ public class Program {
     }
     
     public static class PatternLiteral extends Pattern {
-        private int literal;
+        public int literal;
         public PatternLiteral(int literal) {
             this.token = TokenKind.LITERAL;
             this.literal = literal;
@@ -86,7 +98,7 @@ public class Program {
     }
     
     public static class ExpressionLiteral extends Expression {
-        private int literal;
+        public int literal;
         public ExpressionLiteral(int literal) {
             this.literal = literal;
         }
@@ -97,8 +109,8 @@ public class Program {
     }
     
     public static class ExpressionLet extends Expression {
-        private Definition definition;
-        private Expression expression;
+        public Definition definition;
+        public Expression expression;
     
         public ExpressionLet(Definition definition, Expression expression) {
             this.definition = definition;
@@ -114,8 +126,8 @@ public class Program {
     }
     
     public static class ExpressionFunction extends Expression {
-        private Identifier ident;
-        private List<Expression> params;
+        public Identifier ident;
+        public List<Expression> params;
         public ExpressionFunction(Identifier ident, List<Expression> params) {
             this.ident = ident;
             this.params = params;
@@ -135,7 +147,7 @@ public class Program {
     }
     
     public static class ExpressionIdentifier extends Expression {
-        private Identifier ident;
+        public Identifier ident;
         public ExpressionIdentifier(Identifier ident) {
             this.ident = ident;
         }
@@ -146,16 +158,12 @@ public class Program {
     }
     
     public static class Identifier {
-        private String name;
-        private String id;
+        public String name;
+        public int id;
 
         public Identifier(String name) {
             this.name = name;
-            this.id = "arandomstring";
-        }
-
-        public String getName() {
-            return name;
+            this.id = new Random().nextInt();
         }
 
         public String toString() {
