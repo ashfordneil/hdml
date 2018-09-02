@@ -32,14 +32,12 @@ public class Codegen {
 
             // nodes
             writeLineIndented("\"nodes\": {", writer, 2);
-            int i = 0, size = d.symbols.keySet().size();
-            for (String key : d.symbols.keySet()) {
-                Symbol s = d.symbols.get(key);
-                // Don't include ourselves in the output
-                if (s.type == SymbolType.DEFINITION) {
-                    i++;
-                    continue;
-                }
+
+            List<Symbol> symbolsMinusDefs = new ArrayList<>(d.symbols.values());
+            symbolsMinusDefs.removeIf(s -> s.type == SymbolType.DEFINITION);
+            int i = 0, size = symbolsMinusDefs.size();
+            for (Symbol s : symbolsMinusDefs) {
+                
                 writeLineIndented("\"" + s.ident.name + "\"" + ": {", writer, 3);
                 if (s.type == SymbolType.INPUT) {
                     writeLineIndented("\"type_\": \"Input\",", writer, 4);
@@ -55,6 +53,8 @@ public class Codegen {
                     writeLineIndented("\"type_\": {", writer, 4);
                     writeLineIndented("\"Internal\": \"" + var.value.type + "\"", writer, 5);
                     writeLineIndented("},", writer, 4);
+                } else {
+                    throw new RuntimeException("Found node of type " + s.type);
                 }
                 writeLineIndented("\"name\": \"" + s.ident.name + "\"", writer, 4);
                 if (i < size - 1) {
@@ -69,13 +69,8 @@ public class Codegen {
             // edges
             writeLineIndented("\"edges\": {", writer, 2);
             i = 0;
-            for (String key : d.symbols.keySet()) {
-                Symbol s = d.symbols.get(key);
-                // Don't include ourselves in the output
-                if (s.type == SymbolType.DEFINITION) {
-                    i++;
-                    continue;
-                }
+            for (Symbol s : symbolsMinusDefs) {
+
                 writeLineIndented("\"" + s.ident.name + "\"" + ": [", writer, 3);
                 int j = 0;
                 while (j < s.references.size()) {
