@@ -20,6 +20,8 @@ public class Checker {
         nandParams.add("x");
         nandParams.add("y");
         symbols.put("nand", new SymbolFunction(new Identifier("nand"), nandParams));
+        symbols.put("1", new Symbol(SymbolType.INPUT, new Identifier("1")));
+        symbols.put("0", new Symbol(SymbolType.INPUT, new Identifier("0")));
         List<CheckedDefinition> definitions = new ArrayList<>();
         for (Definition d : p.getDefinitions()) {
             // copy the symbol table down
@@ -120,6 +122,13 @@ public class Checker {
             }
             return name;
             
+        } else if (expression instanceof ExpressionLiteral) {
+            ExpressionLiteral e = (ExpressionLiteral) expression;
+            if (e.literal != 0 && e.literal != 1) {
+                throw new RuntimeException("2 isn't real");
+            }
+            symbols.get(e.literal == 1 ? "1" : "0").addReference(sink, sinkInput);
+            return e.literal == 1 ? "1" : "0";
         }
         return null;
     }
