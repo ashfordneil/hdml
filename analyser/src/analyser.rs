@@ -1,9 +1,7 @@
-use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
+use std::collections::{BTreeMap, HashMap, VecDeque};
 
 use ir::{Edge, Gate, Type};
 
-use serde_json;
-use itertools::Itertools;
 use prettytable::Table;
 use prettytable::row::Row;
 use prettytable::cell::Cell;
