@@ -68,10 +68,9 @@ public class Parser {
             return parseExpressionLet(iter);
         } else if (token.getKind() == TokenKind.IDENT) {
             Identifier ident = new Identifier(((TokenIdentifier) token).getName());
-            Token test = peek(iter);
-            if (test.getKind() == TokenKind.OPEN_BRACE) {
+            if (iter.hasNext() && peek(iter).getKind() == TokenKind.OPEN_BRACE) {
                 iter.next(); // skip open_brace
-                test = peek(iter);
+                Token test = peek(iter);
                 List<Expression> expressions = new ArrayList<Expression>();
                 while (test.getKind() != TokenKind.CLOSE_BRACE) {
                     expressions.add(parseExpression(iter));
@@ -84,7 +83,7 @@ public class Parser {
                 return new ExpressionIdentifier(ident);
             }
         } 
-        throw new RuntimeException("You dun fucked up");
+        throw new RuntimeException("Invalid expression");
     }
 
     private static Assignment parseAssignment(ListIterator<Token> iter) {
@@ -117,6 +116,7 @@ public class Parser {
         String line = reader.readLine();
         while (line != null) {
             Scanner scanner = new Scanner(line);
+            scanner.useDelimiter("(\\s+)");
             while (scanner.hasNext()) {
                 String token = scanner.next();
                 if (token.equals(KW_UNDERSCORE)) {
@@ -137,8 +137,10 @@ public class Parser {
                     tokens.add(new TokenIdentifier(token));
                 }
             }
+            scanner.close();
             line = reader.readLine();
         }
+        reader.close();
         return tokens;
     }
 
