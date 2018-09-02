@@ -31,6 +31,11 @@ public class TestCompiler {
         run("src/test/resources/assign_variable");
     }
 
+    @Test
+    public void testLiteral() {
+        run("src/test/resources/literal");
+    }
+
     /**
      * Treat an incorrect number of args as having the rest be undefined
      */

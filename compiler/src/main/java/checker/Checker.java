@@ -20,8 +20,6 @@ public class Checker {
         nandParams.add("x");
         nandParams.add("y");
         symbols.put("nand", new SymbolFunction(new Identifier("nand"), nandParams));
-        symbols.put("1", new Symbol(SymbolType.INPUT, new Identifier("1")));
-        symbols.put("0", new Symbol(SymbolType.INPUT, new Identifier("0")));
         List<CheckedDefinition> definitions = new ArrayList<>();
         for (Definition d : p.getDefinitions()) {
             // copy the symbol table down
@@ -43,9 +41,14 @@ public class Checker {
             params.add(((PatternIdentifier) p).ident.name);
         }
         symbols.put(i.name, new SymbolFunction(i, params));
-        String outputName = i.name + "_OUTPUT";
-        symbols.put(outputName, new Symbol(SymbolType.OUTPUT, new Identifier(outputName)));
+
         HashMap<String, Symbol> s = new HashMap<>(symbols);
+
+        // Add the output node, 1, and 0 to the enclosed symbol table
+        String outputName = i.name + "_OUTPUT";
+        s.put(outputName, new Symbol(SymbolType.OUTPUT, new Identifier(outputName)));
+        s.put("1", new Symbol(SymbolType.INPUT, new Identifier("1")));
+        s.put("0", new Symbol(SymbolType.INPUT, new Identifier("0")));
         for (Pattern p : d.getPatterns()) {
             checkPattern(p, s);
         }

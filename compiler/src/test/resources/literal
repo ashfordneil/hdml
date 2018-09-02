@@ -1,0 +1,5 @@
+false = 0
+
+not x = nand ( x x )
+
+true = not ( false ( ) )
