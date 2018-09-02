@@ -1,8 +1,0 @@
-[package]
-name = "ir"
-version = "0.1.0"
-authors = ["Neil Ashford <ashfordneil0@gmail.com>"]
-
-[dependencies]
-serde = "1.0.75"
-serde_derive = "1.0.75"
