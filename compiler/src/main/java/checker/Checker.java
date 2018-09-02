@@ -31,7 +31,7 @@ public class Checker {
     }
 
     public static CheckedDefinition checkDefinition(Definition d, HashMap<String, Symbol> symbols) {
-        System.out.println("Definition " + d);
+        // System.out.println("Definition " + d);
 
         Identifier i = d.getIdentifier();
 
@@ -55,7 +55,7 @@ public class Checker {
     }
 
     public static void checkPattern(Pattern p, HashMap<String, Symbol> symbols) {
-        System.out.println("Pattern " + p.toString());
+        // System.out.println("Pattern " + p.toString());
         if (p.token == TokenKind.IDENT) {
             Symbol s = new Symbol(SymbolType.INPUT, ((PatternIdentifier) p).ident);
             if (symbols.containsKey(s.ident.name)) {
@@ -70,7 +70,6 @@ public class Checker {
         String name = checkExpression(assignment.expression, symbols, assignment.ident.name, sinkInput);
         for (Symbol ss : symbols.values()) {
             int index = ss.references.indexOf(name);
-            System.out.println(ss + ": " + index);
             if (index != -1) {
                 ss.references.set(index, assignment.ident.name);
             }
@@ -79,7 +78,7 @@ public class Checker {
     }
 
     public static String checkExpression(Expression expression, HashMap<String, Symbol> symbols, String sink, String sinkInput) {
-        System.out.println("Expression " + expression);
+        // System.out.println("Expression " + expression);
         if (expression instanceof ExpressionLet) {
 
             ExpressionLet e = (ExpressionLet) expression;
