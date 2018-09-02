@@ -26,7 +26,7 @@ public class Compiler {
         System.out.println("Checking");
         CheckedProgram checked = Checker.check(program);
         try {
-            Codegen.gen(checked, "out");
+            Codegen.gen(checked, "out.json");
         } catch (IOException e) {
             e.printStackTrace();
         }
