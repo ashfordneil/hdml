@@ -80,6 +80,10 @@ public class Program {
             this.token = TokenKind.IDENT;
             this.ident = ident;
         }
+
+        public String toString() {
+            return ident.toString();
+        }
     }
     
     public static class PatternLiteral extends Pattern {

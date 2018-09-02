@@ -59,14 +59,38 @@ public class Checker {
         if (p.token == TokenKind.IDENT) {
             Symbol s = new Symbol(SymbolType.INPUT, ((PatternIdentifier) p).ident);
             if (symbols.containsKey(s.ident.name)) {
-                throw new RuntimeException("Duplicate local identifier " + s.ident.name);
+                Symbol existing = symbols.get(s.ident.name);
+                if (existing.type == SymbolType.UNDEFINED) {
+                    if (!((SymbolUndefined) existing).expected.contains(SymbolType.INPUT)) {
+                        throw new RuntimeException("Expected symbol to be INPUT");
+                    }
+                    for (int i = 0; i < existing.references.size(); i++) {
+                        s.addReference(existing.references.get(i), existing.referencesInputs.get(i));
+                    }
+                } else {
+                    throw new RuntimeException("Duplicate local identifier " + s.ident.name);
+                }
             }
             symbols.put(s.ident.name, s);
         }
     }
 
     public static void checkAssignment(Assignment assignment, HashMap<String, Symbol> symbols, String sink, String sinkInput) {
-        symbols.put(assignment.ident.name, new SymbolVariable(assignment.ident, assignment.expression));
+        Symbol variable = new SymbolVariable(assignment.ident, assignment.expression);
+        if (symbols.containsKey(assignment.ident.name)) {
+            Symbol s = symbols.get(assignment.ident.name);
+            if (s.type != SymbolType.UNDEFINED) {
+                throw new RuntimeException("Duplicate local identifier " + assignment.ident.name);
+            }
+            SymbolUndefined undefined = (SymbolUndefined) s;
+            if (!undefined.expected.contains(SymbolType.VARIABLE)) {
+                throw new RuntimeException("Expected VARIABLE");
+            }
+            for (int i = 0; i < undefined.references.size(); i++) {
+                variable.addReference(undefined.references.get(i), undefined.referencesInputs.get(i));
+            }
+        }
+        symbols.put(assignment.ident.name, variable);
         String name = checkExpression(assignment.expression, symbols, assignment.ident.name, sinkInput);
         for (Symbol ss : symbols.values()) {
             int index = ss.references.indexOf(name);
@@ -90,11 +114,10 @@ public class Checker {
         } else if (expression instanceof ExpressionIdentifier) {
 
             ExpressionIdentifier e = (ExpressionIdentifier) expression;
-            if (symbols.containsKey(e.ident.name)) {
-                symbols.get(e.ident.name).addReference(sink, sinkInput);
-            } else {
-                throw new RuntimeException("Symbol " + e.ident.name + " not found");
+            if (!symbols.containsKey(e.ident.name)) {
+                symbols.put(e.ident.name, new SymbolUndefined(new Identifier(e.ident.name), new SymbolType[]{SymbolType.INPUT, SymbolType.VARIABLE}));
             }
+            symbols.get(e.ident.name).addReference(sink, sinkInput);
             return e.ident.name;
 
         } else if (expression instanceof ExpressionFunction) {
@@ -103,15 +126,18 @@ public class Checker {
             String name = e.ident.name + f.format(identifier++);
             Symbol s = symbols.get(e.ident.name);
             if (s != null) {
-                if (s.type != SymbolType.DEFINITION) {
+                if (s.type != SymbolType.DEFINITION && s.type != SymbolType.UNDEFINED) {
                     throw new RuntimeException("Can't call something that's not a function");
                 }
-                // Add symbol for function 
-                symbols.put(name, new SymbolCall(new Identifier(name), e.ident.name));
-                symbols.get(name).addReference(sink, sinkInput);
             } else {
-                throw new RuntimeException("Symbol " + e.ident.name + " not found");
+                // Be optimistic
+                Symbol maybeFunction = new SymbolUndefined(new Identifier(e.ident.name), new SymbolType[]{SymbolType.DEFINITION});
+                symbols.put(maybeFunction.ident.name, maybeFunction);
             }
+            // Add symbol for function call
+            symbols.put(name, new SymbolCall(new Identifier(name), e.ident.name));
+            symbols.get(name).addReference(sink, sinkInput);
+
             SymbolFunction f = (SymbolFunction) s;
             int i = 0;
             for (Expression child : e.params) {
@@ -188,12 +214,21 @@ public class Checker {
         }
     }
 
+    public static class SymbolUndefined extends Symbol {
+        public List<SymbolType> expected;
+        public SymbolUndefined(Identifier ident, SymbolType[] expected) {
+            super(SymbolType.UNDEFINED, ident);
+            this.expected = Arrays.asList(expected);
+        }
+    }
+
     public enum SymbolType {
         DEFINITION,
         INPUT,
         OUTPUT,
         VARIABLE,
         CALL,
+        UNDEFINED,
     }
 
     public static class CheckedProgram {
