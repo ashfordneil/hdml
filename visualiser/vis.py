@@ -5,9 +5,7 @@ import matplotlib.pyplot as plt
 from graphviz import Source, render
 import sys
 
-f = open(sys.stdin.readline().strip())
-
-json_data = "".join(f.readlines())
+json_data = "".join(sys.stdin.readlines())
 
 python_data = json.loads(json_data)
 
