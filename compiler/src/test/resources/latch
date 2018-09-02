@@ -1,0 +1,15 @@
+not x = nand ( x x )
+
+id x = not ( not ( x ) )
+
+or x y =
+    let x_bar = not ( x ) in
+    let y_bar = not ( y ) in
+    nand ( x_bar y_bar )
+
+nor x y = not ( or ( x y ) )
+
+latch x y =
+    let r = nor ( x s ) in
+    let s = nor ( y r ) in
+    r

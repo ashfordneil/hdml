@@ -1,0 +1,7 @@
+and x y =
+    let z = nand ( x y )
+    in nand ( z z )
+
+or x y = nand ( nand ( x x ) nand ( y y ) )
+
+xor x y = and ( nand ( x y ) or ( x y ) )

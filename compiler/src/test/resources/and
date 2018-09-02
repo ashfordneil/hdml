@@ -1,0 +1,3 @@
+and x y =
+    let z = nand ( x y )
+    in nand ( z z )
