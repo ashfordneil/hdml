@@ -1,6 +1,6 @@
 //! The IR of HDML.
 
-use std::collections::{HashSet, HashMap};
+use std::collections::HashMap;
 
 /// A gate
 #[derive(Debug, Clone, Serialize, Deserialize)]
