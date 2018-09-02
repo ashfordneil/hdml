@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Neil Ashford <ashfordneil0@gmail.com>"]
 
 [dependencies]
-ir = { path = "ir" }
-analyser = { path = "analyser" }
-sim = { path = "sim" }
-
-[workspace]
+serde = "1.0.76"
+serde_derive = "1.0.76"
+serde_json = "1.0.26"
+itertools = "0.7.8"
+prettytable-rs = "0.7.0"

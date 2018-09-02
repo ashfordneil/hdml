@@ -1,7 +1,4 @@
 //! The IR of HDML.
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
 
 use std::collections::{HashSet, HashMap};
 
