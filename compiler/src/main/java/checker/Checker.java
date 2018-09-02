@@ -20,6 +20,8 @@ public class Checker {
         nandParams.add("x");
         nandParams.add("y");
         symbols.put("nand", new SymbolFunction(new Identifier("nand"), nandParams));
+        symbols.put("1", new Symbol(SymbolType.INPUT, new Identifier("1")));
+        symbols.put("0", new Symbol(SymbolType.INPUT, new Identifier("0")));
         List<CheckedDefinition> definitions = new ArrayList<>();
         for (Definition d : p.getDefinitions()) {
             // copy the symbol table down
@@ -29,7 +31,7 @@ public class Checker {
     }
 
     public static CheckedDefinition checkDefinition(Definition d, HashMap<String, Symbol> symbols) {
-        System.out.println("Definition " + d);
+        // System.out.println("Definition " + d);
 
         Identifier i = d.getIdentifier();
 
@@ -53,7 +55,7 @@ public class Checker {
     }
 
     public static void checkPattern(Pattern p, HashMap<String, Symbol> symbols) {
-        System.out.println("Pattern " + p.toString());
+        // System.out.println("Pattern " + p.toString());
         if (p.token == TokenKind.IDENT) {
             Symbol s = new Symbol(SymbolType.INPUT, ((PatternIdentifier) p).ident);
             if (symbols.containsKey(s.ident.name)) {
@@ -68,7 +70,6 @@ public class Checker {
         String name = checkExpression(assignment.expression, symbols, assignment.ident.name, sinkInput);
         for (Symbol ss : symbols.values()) {
             int index = ss.references.indexOf(name);
-            System.out.println(ss + ": " + index);
             if (index != -1) {
                 ss.references.set(index, assignment.ident.name);
             }
@@ -77,7 +78,7 @@ public class Checker {
     }
 
     public static String checkExpression(Expression expression, HashMap<String, Symbol> symbols, String sink, String sinkInput) {
-        System.out.println("Expression " + expression);
+        // System.out.println("Expression " + expression);
         if (expression instanceof ExpressionLet) {
 
             ExpressionLet e = (ExpressionLet) expression;
@@ -120,6 +121,13 @@ public class Checker {
             }
             return name;
             
+        } else if (expression instanceof ExpressionLiteral) {
+            ExpressionLiteral e = (ExpressionLiteral) expression;
+            if (e.literal != 0 && e.literal != 1) {
+                throw new RuntimeException("2 isn't real");
+            }
+            symbols.get(e.literal == 1 ? "1" : "0").addReference(sink, sinkInput);
+            return e.literal == 1 ? "1" : "0";
         }
         return null;
     }

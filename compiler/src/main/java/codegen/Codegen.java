@@ -10,8 +10,7 @@ import parser.Program;
 import parser.Program.*;
 
 public class Codegen {
-    public static void gen(CheckedProgram p, String out) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(out));
+    public static void gen(CheckedProgram p, BufferedWriter writer) throws IOException {
         writer.write("{\n");
 
         int k = 0;
