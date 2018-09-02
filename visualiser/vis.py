@@ -37,7 +37,7 @@ for key in python_data:
 
     circuit_graphs.append(G)
 
-for i, graph in enumerate(circuit_graphs):
+for graph in circuit_graphs:
     dot = nx.nx_pydot.to_pydot(graph)
     src = Source(dot)
-    src.render(str(i), view=False)
+    src.render(graph.name, view=False, cleanup=True)
