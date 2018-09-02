@@ -142,6 +142,9 @@ public class Checker {
             symbols.get(name).addReference(sink, sinkInput);
 
             SymbolFunction f = (SymbolFunction) s;
+            if (e.params.size() > f.params.size()) {
+                throw new RuntimeException("Too many parameters for function " + f.ident.name);
+            }
             int i = 0;
             for (Expression child : e.params) {
                 // Give these a new scope
