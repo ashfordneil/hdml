@@ -5,7 +5,12 @@ import matplotlib.pyplot as plt
 from graphviz import Source, render
 import sys
 
-json_data = "".join(sys.stdin.readlines())
+if len(sys.argv) == 2:
+    f = open(sys.argv[1])
+    json_data = "".join(f.readlines())
+else:
+    # Read from stdin
+    json_data = "".join(sys.stdin.readlines())
 
 python_data = json.loads(json_data)
 
@@ -14,7 +19,7 @@ circuit_graphs = []
 
 for key in python_data:
     circuit = python_data[key]
-    G = nx.MultiDiGraph(name=circuit)
+    G = nx.MultiDiGraph(name=key)
 
     # Add nodes
     for node in circuit["nodes"]:
@@ -40,4 +45,4 @@ for key in python_data:
 for graph in circuit_graphs:
     dot = nx.nx_pydot.to_pydot(graph)
     src = Source(dot)
-    src.render(graph.name, view=False, cleanup=True)
+    src.render(graph.graph["name"], view=False, cleanup=True)
