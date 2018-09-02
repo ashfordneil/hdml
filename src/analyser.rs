@@ -4,15 +4,18 @@ use ir::{Edge, Gate, Type};
 
 use serde_json;
 use itertools::Itertools;
+use prettytable::Table;
+use prettytable::row::Row;
+use prettytable::cell::Cell;
 
-#[derive(Debug, Default, Hash, PartialEq, Eq, Clone)]
+#[derive(Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord, Clone)]
 struct GateInput(BTreeMap<String, GateOutput>);
 
-#[derive(Debug, Default, Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 struct GateOutput(bool);
 
 #[derive(Debug, Clone)]
-pub struct TruthTable(HashMap<GateInput, GateOutput>);
+pub struct TruthTable(BTreeMap<GateInput, GateOutput>);
 
 fn all_inputs(gate: &Gate) -> Vec<GateInput> {
     (0..)
@@ -30,7 +33,7 @@ fn all_inputs(gate: &Gate) -> Vec<GateInput> {
 }
 
 fn nand_truth_table() -> TruthTable {
-    let mut output = HashMap::new();
+    let mut output = BTreeMap::new();
     for (x, y, o) in &[
         (false, false, true),
         (false, true, true),
@@ -94,7 +97,7 @@ pub fn truth_table<'a>(
         let gate = graph.get(gate_name).expect("Gate does not exist");
         let input_possibilities = all_inputs(&gate);
 
-        let mut output = HashMap::new();
+        let mut output = BTreeMap::new();
 
         for GateInput(input) in input_possibilities {
             // map from node name to state of inputs to node
@@ -161,14 +164,24 @@ pub fn truth_table<'a>(
     precalculated.get(gate_name).unwrap()
 }
 
-pub fn display_truth_table(gate: &Gate, truth_table: &TruthTable) -> String {
+pub fn display_truth_table(gate: &Gate, truth_table: &TruthTable) -> Table {
     let TruthTable(truth_table) = truth_table;
     let all_inputs = all_inputs(gate);
 
     if all_inputs.is_empty() {
-        return "".into();
+        panic!("Expected inputs to gate");
     }
 
-    let headers = all_inputs[0].0.iter().map(|(name, _)| name.as_str()).intersperse(",").collect();
-    return headers;
+    let mut headers: Row = all_inputs[0].0.iter().map(|(name, _)| name).into();
+    headers.add_cell(Cell::new("output"));
+
+    let mut table = Table::init(vec![headers]);
+
+    for (input, GateOutput(output)) in truth_table.iter() {
+        let mut row: Row = input.0.iter().map(|(_, GateOutput(value))| value).into();
+        row.add_cell(Cell::new(&output.to_string()));
+        table.add_row(row);
+    }
+
+    table
 }
